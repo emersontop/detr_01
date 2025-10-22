@@ -1,7 +1,9 @@
 import os
 from torch.utils.data import DataLoader
 from transformers import DetrImageProcessor
+from pytorch_lightning import Trainer
 
+from src.model import DetrModel
 from src.dataset import CocoDetection
 
 # variaveis globais de configuracao
@@ -10,7 +12,7 @@ from src.dataset import CocoDetection
 IMAGE_PROCESSOR = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
 
 # Dataset directory path
-DATASET_DIR = '/home/live/Documents/pessoal/detr_01/data'
+DATASET_DIR = '/home/live-segcom/Documents/detr_01/data'
 
 # Dataset directories and annotation file name
 ANNOTATION_FILE_NAME = "_annotations.coco.json"
@@ -54,10 +56,26 @@ TRAIN_DATALOADER = DataLoader(dataset=TRAIN_DATASET, collate_fn=collate_fn, batc
 VAL_DATALOADER = DataLoader(dataset=VAL_DATASET, collate_fn=collate_fn, batch_size=1)
 TEST_DATALOADER = DataLoader(dataset=TEST_DATASET, collate_fn=collate_fn, batch_size=1)
 
+MAX_EPOCHS = 200
+MODEL_PATH = '/home/live-segcom/Documents/detr_01/models/detr_model'
+
 def main():
 	print("Number of training examples:", len(TRAIN_DATASET))
 	print("Number of validation examples:", len(VAL_DATASET))
 	print("Number of test examples:", len(TEST_DATASET))
+	
+    # Model
+	model = DetrModel(lr=1e-4, lr_backbone=1e-5, weight_decay=1e-4)
+	batch = next(iter(TRAIN_DATALOADER))
+	outputs = model(pixel_values=batch["pixel_values"], pixel_mask=batch["pixel_mask"])
+	
+    # Trainer
+	trainer = Trainer(max_epochs=MAX_EPOCHS, gradient_clip_val=0.1, accumulate_grad_batches=8, log_every_n_steps=5)
+	trainer.fit(model, TRAIN_DATALOADER, VAL_DATALOADER)
+	
+    # Save the trained model
+	model.model.save_pretrained(MODEL_PATH)
+
 
 if __name__ == "__main__":
 	main()

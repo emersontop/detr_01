@@ -15,7 +15,7 @@ from src.dataset import CocoDetection
 IMAGE_PROCESSOR = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
 
 # Dataset directory path
-DATASET_DIR = '/home/live/Documents/pessoal/detr_01/data'
+DATASET_DIR = '/home/live-segcom/Documents/detr_01/data'
 
 # Dataset directories and annotation file name
 ANNOTATION_FILE_NAME = "_annotations.coco.json"
@@ -47,6 +47,7 @@ def visualize_random_sample(dataset):
 	# we will use id2label function for training
 	categories = TRAIN_DATASET.coco.cats
 	id2label = {k: v['name'] for k,v in categories.items()}
+	print(f"Categories: {len(id2label)}")
 
 	labels = [
 		f"{id2label[class_id]}" 
